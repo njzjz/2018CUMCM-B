@@ -163,7 +163,7 @@ class machine_RGV(object):
             self.load_sample=None
             self.system.CNC[id].state=STATE_PROCESS
             self.system.CNC[id].t_statetotal=self.system.CNC[id].t_process
-            self.system.CNC[id].sample.CNCid=id
+            self.system.CNC[id].sample.CNCid.append(id)
         # wash sample
         if self.unload_sample is not None:
             if self.sample is not None:
@@ -189,6 +189,7 @@ class Sample(object):
     def __init__(self,id):
         self.id=id
         self.processstep=0
+        self.CNCid=[]
         self.starttime=[]
         self.endtime=[]
     
@@ -205,7 +206,7 @@ if __name__=='__main__':
     system.run(8*60*60)
     with open("case1group1.txt",'w') as f:
         for sample in sorted(system.samples,key=lambda x:x.id):
-            print(sample.id+1,sample.CNCid+1,sample.starttime[0],sample.endtime[0],file=f)
+            print(sample.id+1,sample.CNCid[0]+1,sample.starttime[0],sample.endtime[0],file=f)
 
     # case 1 , group 2
     system=process_system(
@@ -219,7 +220,7 @@ if __name__=='__main__':
     system.run(8*60*60)
     with open("case1group2.txt",'w') as f:
         for sample in sorted(system.samples,key=lambda x:x.id):
-            print(sample.id+1,sample.CNCid+1,sample.starttime[0],sample.endtime[0],file=f)     
+            print(sample.id+1,sample.CNCid[0]+1,sample.starttime[0],sample.endtime[0],file=f)     
             
     # case 1 , group 3
     system=process_system(
@@ -233,7 +234,7 @@ if __name__=='__main__':
     system.run(8*60*60)
     with open("case1group3.txt",'w') as f:
         for sample in sorted(system.samples,key=lambda x:x.id):
-            print(sample.id+1,sample.CNCid+1,sample.starttime[0],sample.endtime[0],file=f)     
+            print(sample.id+1,sample.CNCid[0]+1,sample.starttime[0],sample.endtime[0],file=f)     
             
     # case 2, group 1  
     system=process_system(
@@ -247,7 +248,7 @@ if __name__=='__main__':
     system.run(8*60*60)
     with open("case2group1.txt",'w') as f:
         for sample in sorted(system.samples,key=lambda x:x.id):
-            print(sample.id+1,sample.CNCid+1,sample.starttime[0],sample.endtime[0],sample.starttime[1],sample.endtime[1],file=f)
+            print(sample.id+1,sample.CNCid[0]+1,sample.starttime[0],sample.endtime[0],sample.CNCid[1]+1,sample.starttime[1],sample.endtime[1],file=f)
     
     # case 2, group 2
     system=process_system(
@@ -261,7 +262,7 @@ if __name__=='__main__':
     system.run(8*60*60)
     with open("case2group2.txt",'w') as f:
         for sample in sorted(system.samples,key=lambda x:x.id):
-            print(sample.id+1,sample.CNCid+1,sample.starttime[0],sample.endtime[0],sample.starttime[1],sample.endtime[1],file=f)
+            print(sample.id+1,sample.CNCid[0]+1,sample.starttime[0],sample.endtime[0],sample.CNCid[1]+1,sample.starttime[1],sample.endtime[1],file=f)
     
     # case 2, group 3
     system=process_system(
@@ -275,5 +276,5 @@ if __name__=='__main__':
     system.run(8*60*60)
     with open("case2group3.txt",'w') as f:
         for sample in sorted(system.samples,key=lambda x:x.id):
-            print(sample.id+1,sample.CNCid+1,sample.starttime[0],sample.endtime[0],sample.starttime[1],sample.endtime[1],file=f)
+            print(sample.id+1,sample.CNCid[0]+1,sample.starttime[0],sample.endtime[0],sample.CNCid[1]+1,sample.starttime[1],sample.endtime[1],file=f)
         
