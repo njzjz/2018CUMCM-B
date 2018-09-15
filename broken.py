@@ -1,3 +1,6 @@
+# Last line of the result:
+# 10000000000 0.0099099874
+
 import random,math
 p_final=0.01
 timestep=1
@@ -9,7 +12,7 @@ state=0
 t_fixing=0
 t_fixtotal=0
 
-while time<10**9:
+while time<10**10:
     if state==1:
         if t_fixing<t_fix:
             t_fixing+=timestep
