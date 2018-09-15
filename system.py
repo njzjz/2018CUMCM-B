@@ -47,16 +47,22 @@ class process_system(object):
             for CNC in self.CNC:
                 CNC.last(self.timestep)
             self.RGV.last(self.timestep)
-        if self.RGV.sample.processstep+1>=self.n_process:
-            self.samples.append(self.RGV.sample)
+        if self.RGV.sample is not None:
+            if self.RGV.sample.processstep+1>=self.n_process:
+                self.samples.append(self.RGV.sample)
                         
     def determine(self,requirements):
         # Here is what we need to discuss
         move_time=[(0 if self.CNC[requirement].t_statetotal-self.CNC[requirement].t_state<=self.t_move_CNC[self.RGV.position][requirement] else self.CNC[requirement].t_statetotal-self.CNC[requirement].t_state-self.t_move_CNC[self.RGV.position][requirement])+ self.t_move_CNC[self.RGV.position][requirement]+self.t_load[requirement]+self.t_wash for requirement in requirements]
         best=requirements[np.where(move_time==np.min(move_time))[0][0]]
         return best
+      
+class machine(object):  
+    def last(self,timestep):
+        if not self.state==STATE_REST:
+            self.t_state+=timestep
         
-class machine_CNC(object):
+class machine_CNC(machine):
     def __init__(self,id,t_process,tool,system,may_broken=False):
         self.t_process=t_process
         self.system=system
@@ -78,11 +84,6 @@ class machine_CNC(object):
                 self.state=STATE_REST
                 self.t_state=0
                 self.t_statetotal=0
-                
-    def last(self,timestep):
-        #last
-        if not self.state==STATE_REST:
-            self.t_state+=timestep
     
     def checkbroken(self):
         if self.may_broken and self.state==STATE_PROCESS:
@@ -97,7 +98,7 @@ class machine_CNC(object):
                 broken.endtime=self.system.time+self.t_statetotal
                 self.system.brokens.append(broken)
     
-class machine_RGV(object):
+class machine_RGV(machine):
     def __init__(self,t_move_CNC,t_load,t_wash,system):
         self.t_move_CNC=t_move_CNC
         self.t_load=t_load
@@ -122,10 +123,6 @@ class machine_RGV(object):
         else:
             self.todo()
     
-    def last(self,timestep):
-        if not self.state==STATE_REST:
-            self.t_state+=timestep
-    
     def todetermine(self):
         if self.determine is None:
         # Determine what to do
@@ -134,8 +131,6 @@ class machine_RGV(object):
 
             if requirements:
                 self.determine=self.system.determine(requirements)
-            else:
-                self.determine=None
             
     def todo(self):
         #Before a timestep starts
@@ -157,15 +152,16 @@ class machine_RGV(object):
                 if self.system.CNC[self.determine].state==STATE_REST:
                     self.load(self.determine)
                 else:
-                    self.state=STATE_REST
-                    self.determine=None
-                    self.todo()
+                    self.done()
             elif self.state==STATE_LOAD:
                 self.load_complete(self.determine)
             elif self.state==STATE_WASH:
-                self.state=STATE_REST
-                self.determine=None
-                self.todo()
+                self.done()
+    
+    def done(self):
+        self.state=STATE_REST
+        self.determine=None
+        self.todo() # do the next thing
     
     def move(self,move_to):
         self.state=STATE_MOVE
@@ -216,10 +212,7 @@ class machine_RGV(object):
             self.state=STATE_WASH
             self.t_statetotal=self.t_wash
         else:
-            self.state=STATE_REST
-            self.determine=None
-            self.todo()
- 
+            self.done()
 
 class Sample(object):
     def __init__(self,id):
@@ -233,219 +226,3 @@ class Broken(object):
     def __init__(self,sampleid,CNCid):
         self.sampleid=sampleid
         self.CNCid=CNCid
-    
-if __name__=='__main__':
-    print("\t","g1","\t","g2","\t","g3")
-    print("c1","\t",end='')
-    # case 1 , group 1
-    system=process_system(
-        t_move=[20,33,46],
-        t_process=[560]*8,
-        tools=[0]*8,
-        n_process=1,
-        t_load=[28,31]*4,
-        t_wash=25
-    )
-    system.run(8*60*60)
-    with open("case1group1.txt",'w') as f:
-        for sample in sorted(system.samples,key=lambda x:x.id):
-            print(sample.id+1,sample.CNCid[0]+1,sample.starttime[0],sample.endtime[0],file=f)
-    print(len(system.samples),"\t",end='')
-    
-    # case 1 , group 2
-    system=process_system(
-        t_move=[23,41,59],
-        t_process=[580]*8,
-        tools=[0]*8,
-        n_process=1,
-        t_load=[30,35]*4,
-        t_wash=30
-    )
-    system.run(8*60*60)
-    with open("case1group2.txt",'w') as f:
-        for sample in sorted(system.samples,key=lambda x:x.id):
-            print(sample.id+1,sample.CNCid[0]+1,sample.starttime[0],sample.endtime[0],file=f)
-    print(len(system.samples),"\t",end='')
-            
-    # case 1 , group 3
-    system=process_system(
-        t_move=[18,32,46],
-        t_process=[545]*8,
-        tools=[0]*8,
-        n_process=1,
-        t_load=[27,32]*4,
-        t_wash=25
-    )
-    system.run(8*60*60)
-    with open("case1group3.txt",'w') as f:
-        for sample in sorted(system.samples,key=lambda x:x.id):
-            print(sample.id+1,sample.CNCid[0]+1,sample.starttime[0],sample.endtime[0],file=f) 
-    print(len(system.samples),"\t")    
-            
-    print("c2","\t",end='')
-    # case 2, group 1  
-    tools1=[0,0,1,0,1,1,0,1]
-    t_process1=[400 if tool==0 else 378 for tool in tools1]
-    system=process_system(
-        t_move=[20,33,46],
-        t_process=t_process1,
-        tools=tools1,
-        n_process=2,
-        t_load=[28,31]*4,
-        t_wash=25
-    )
-    system.run(8*60*60)
-    with open("case2group1.txt",'w') as f:
-        for sample in sorted(system.samples,key=lambda x:x.id):
-            print(sample.id+1,sample.CNCid[0]+1,sample.starttime[0],sample.endtime[0],sample.CNCid[1]+1,sample.starttime[1],sample.endtime[1],file=f)
-    print(len(system.samples),"\t",end='')
-    
-    # case 2, group 2
-    tools2=[0,1,1,0,1,1,1,0]
-    t_process2=[280 if tool==0 else 500 for tool in tools2]
-    system=process_system(
-        t_move=[23,41,59],
-        t_process=t_process2,
-        tools=tools2,
-        n_process=2,
-        t_load=[30,35]*4,
-        t_wash=30
-    )
-    system.run(8*60*60)
-    with open("case2group2.txt",'w') as f:
-        for sample in sorted(system.samples,key=lambda x:x.id):
-            print(sample.id+1,sample.CNCid[0]+1,sample.starttime[0],sample.endtime[0],sample.CNCid[1]+1,sample.starttime[1],sample.endtime[1],file=f)
-    print(len(system.samples),"\t",end='')
-    
-    # case 2, group 3
-    tools3=[0,1,0,0,1,0,0,1]
-    t_process3=[455 if tool==0 else 182 for tool in tools3]
-    system=process_system(
-        t_move=[18,32,46],
-        t_process=t_process3,
-        tools=tools3,
-        n_process=2,
-        t_load=[27,32]*4,
-        t_wash=25
-    )
-    system.run(8*60*60)
-    with open("case2group3.txt",'w') as f:
-        for sample in sorted(system.samples,key=lambda x:x.id):
-            print(sample.id+1,sample.CNCid[0]+1,sample.starttime[0],sample.endtime[0],sample.CNCid[1]+1,sample.starttime[1],sample.endtime[1],file=f)
-    print(len(system.samples),"\t")
-   
-    print("c3r1","\t",end='')
-    # case 3 , result 1, group 1
-    system=process_system(
-        t_move=[20,33,46],
-        t_process=[560]*8,
-        tools=[0]*8,
-        n_process=1,
-        t_load=[28,31]*4,
-        t_wash=25,
-        may_broken=True
-    )
-    system.run(8*60*60)
-    with open("case3result1group1.txt",'w') as f:
-        for sample in sorted(system.samples,key=lambda x:x.id):
-            print(sample.id+1,sample.CNCid[0]+1,sample.starttime[0],sample.endtime[0],file=f)
-    with open("case3result1group1_broken.txt",'w') as f:
-        for broken in sorted(system.brokens,key=lambda x:x.sampleid):
-            print(broken.sampleid+1,broken.CNCid+1,broken.starttime,broken.endtime,file=f)
-    print(len(system.samples),"\t",end='')
-            
-    # case 3 , result 1 , group 2
-    system=process_system(
-        t_move=[23,41,59],
-        t_process=[580]*8,
-        tools=[0]*8,
-        n_process=1,
-        t_load=[30,35]*4,
-        t_wash=30,
-        may_broken=True
-    )
-    system.run(8*60*60)
-    with open("case3result1group2.txt",'w') as f:
-        for sample in sorted(system.samples,key=lambda x:x.id):
-            print(sample.id+1,sample.CNCid[0]+1,sample.starttime[0],sample.endtime[0],file=f)
-    with open("case3result1group2_broken.txt",'w') as f:
-        for broken in sorted(system.brokens,key=lambda x:x.sampleid):
-            print(broken.sampleid+1,broken.CNCid+1,broken.starttime,broken.endtime,file=f)
-    print(len(system.samples),"\t",end='')
-            
-    # case 3 , result 1 , group 3
-    system=process_system(
-        t_move=[18,32,46],
-        t_process=[545]*8,
-        tools=[0]*8,
-        n_process=1,
-        t_load=[27,32]*4,
-        t_wash=25,
-        may_broken=True
-    )
-    system.run(8*60*60)
-    with open("case3result1group3.txt",'w') as f:
-        for sample in sorted(system.samples,key=lambda x:x.id):
-            print(sample.id+1,sample.CNCid[0]+1,sample.starttime[0],sample.endtime[0],file=f)  
-    with open("case3result1group3_broken.txt",'w') as f:
-        for broken in sorted(system.brokens,key=lambda x:x.sampleid):
-            print(broken.sampleid+1,broken.CNCid+1,broken.starttime,broken.endtime,file=f) 
-    print(len(system.samples),"\t")      
-
-    print("c3r2","\t",end='')
-    # case 3 , result 2 , group 1
-    system=process_system(
-        t_move=[20,33,46],
-        t_process=t_process1,
-        tools=tools1,
-        n_process=2,
-        t_load=[28,31]*4,
-        t_wash=25,
-        may_broken=True
-    )
-    system.run(8*60*60)
-    with open("case3result2group1.txt",'w') as f:
-        for sample in sorted(system.samples,key=lambda x:x.id):
-            print(sample.id+1,sample.CNCid[0]+1,sample.starttime[0],sample.endtime[0],file=f)  
-    with open("case3result2group1_broken.txt",'w') as f:
-        for broken in sorted(system.brokens,key=lambda x:x.sampleid):
-            print(broken.sampleid+1,broken.CNCid+1,broken.starttime,broken.endtime,file=f) 
-    print(len(system.samples),"\t",end='')
-    
-    # case 2, result 2 , group 2
-    system=process_system(
-        t_move=[23,41,59],
-        t_process=t_process2,
-        tools=tools2,
-        n_process=2,
-        t_load=[30,35]*4,
-        t_wash=30,
-        may_broken=True
-    )
-    system.run(8*60*60)
-    with open("case3result2group2.txt",'w') as f:
-        for sample in sorted(system.samples,key=lambda x:x.id):
-            print(sample.id+1,sample.CNCid[0]+1,sample.starttime[0],sample.endtime[0],file=f)  
-    with open("case3result2group2_broken.txt",'w') as f:
-        for broken in sorted(system.brokens,key=lambda x:x.sampleid):
-            print(broken.sampleid+1,broken.CNCid+1,broken.starttime,broken.endtime,file=f) 
-    print(len(system.samples),"\t",end='')
-    
-    # case 2, result 2 , group 3
-    system=process_system(
-        t_move=[18,32,46],
-        t_process=t_process3,
-        tools=tools3,
-        n_process=2,
-        t_load=[27,32]*4,
-        t_wash=25,
-        may_broken=True
-    )
-    system.run(8*60*60)
-    with open("case3result2group3.txt",'w') as f:
-        for sample in sorted(system.samples,key=lambda x:x.id):
-            print(sample.id+1,sample.CNCid[0]+1,sample.starttime[0],sample.endtime[0],file=f)  
-    with open("case3result2group3_broken.txt",'w') as f:
-        for broken in sorted(system.brokens,key=lambda x:x.sampleid):
-            print(broken.sampleid+1,broken.CNCid+1,broken.starttime,broken.endtime,file=f) 
-    print(len(system.samples),"\t",end='')
