@@ -40,20 +40,15 @@ class process_system(object):
     def run(self,t_run):
         self.state=STATE_PROCESS
         for self.time in range(0,t_run,self.timestep):
-            if self.RGV.determine is None:
-                # Determine what to do
-                requirements=[i for i in range(len(self.CNC))
-                                if (self.CNC[i].tool==0 or len(self.uncompleted_samples)>0) ]
-
-                if requirements:
-                    self.RGV.determine=self.determine(requirements)
-                else:
-                    self.RGV.determine=None
-            
             # Last
+            for CNC in self.CNC:
+                CNC.before(self.timestep)
+            self.RGV.before(self.timestep)
             for CNC in self.CNC:
                 CNC.last(self.timestep)
             self.RGV.last(self.timestep)
+        if self.RGV.sample.processstep+1>=self.n_process:
+            self.samples.append(self.RGV.sample)
                         
     def determine(self,requirements):
         # Here is what we need to discuss
@@ -75,14 +70,19 @@ class machine_CNC(object):
         self.sample=None
         self.determine=None
 
-    def last(self,timestep):
+    def before(self,timestep):
+        #before
         self.checkbroken()
         if not self.state==STATE_REST:
-            self.t_state+=timestep
             if self.t_state>=self.t_statetotal:
                 self.state=STATE_REST
                 self.t_state=0
                 self.t_statetotal=0
+                
+    def last(self,timestep):
+        #last
+        if not self.state==STATE_REST:
+            self.t_state+=timestep
     
     def checkbroken(self):
         if self.may_broken and self.state==STATE_PROCESS:
@@ -113,17 +113,33 @@ class machine_RGV(object):
         self.position=1
         self.determine=None
 
+    def before(self,timestep):
+        if not self.state==STATE_REST:
+            if self.t_state>=self.t_statetotal:
+                self.t_statetotal=0
+                self.t_state=0
+                self.todo()
+        else:
+            self.todo()
+    
     def last(self,timestep):
         if not self.state==STATE_REST:
             self.t_state+=timestep
-            if self.t_state>=self.t_statetotal:
-                self.todo()
-                self.t_statetotal=0
-                self.t_state=0
-        else:
-            self.todo()
+    
+    def todetermine(self):
+        if self.determine is None:
+        # Determine what to do
+            requirements=[i for i in range(len(self.system.CNC))
+                            if (self.system.CNC[i].tool==0 or len(self.system.uncompleted_samples)>0) ]
+
+            if requirements:
+                self.determine=self.system.determine(requirements)
+            else:
+                self.determine=None
             
     def todo(self):
+        #Before a timestep starts
+        self.todetermine()
         if self.determine is not None:
             if self.state==STATE_REST:
                 # move
@@ -143,11 +159,13 @@ class machine_RGV(object):
                 else:
                     self.state=STATE_REST
                     self.determine=None
+                    self.todo()
             elif self.state==STATE_LOAD:
                 self.load_complete(self.determine)
             elif self.state==STATE_WASH:
                 self.state=STATE_REST
                 self.determine=None
+                self.todo()
     
     def move(self,move_to):
         self.state=STATE_MOVE
@@ -199,6 +217,8 @@ class machine_RGV(object):
             self.t_statetotal=self.t_wash
         else:
             self.state=STATE_REST
+            self.determine=None
+            self.todo()
  
 
 class Sample(object):
