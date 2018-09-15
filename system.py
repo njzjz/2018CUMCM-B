@@ -23,7 +23,7 @@ class process_system(object):
         self.timestep=1
         self.t_broken_range=[10*60,20*60]
         self.p_final=0.01
-        self.p_broken=self.p_final/((self.t_broken_range[1]-self.t_broken_range[0])/(math.log(self.t_broken_range[1])-math.log(self.t_broken_range[0])))*self.timestep
+        self.p_broken=self.p_final/np.average(self.t_broken_range)*self.timestep
         
         self.n_CNC=8
         self.t_move_CNC=np.array([[
@@ -264,10 +264,12 @@ if __name__=='__main__':
             
     print("c2","\t",end='')
     # case 2, group 1  
+    tools1=[0,0,1,0,1,1,0,1]
+    t_process1=[400 if tool==0 else 378 for tool in tools1]
     system=process_system(
         t_move=[20,33,46],
-        t_process=[400,378]*4,
-        tools=[0,1]*4,
+        t_process=t_process1,
+        tools=tools1,
         n_process=2,
         t_load=[28,31]*4,
         t_wash=25
@@ -279,10 +281,12 @@ if __name__=='__main__':
     print(len(system.samples),"\t",end='')
     
     # case 2, group 2
+    tools2=[0,1,1,0,1,1,1,0]
+    t_process2=[280 if tool==0 else 500 for tool in tools2]
     system=process_system(
         t_move=[23,41,59],
-        t_process=[280,280,500,500,500,500,500,280],
-        tools=[0,0,1,1,1,1,1,0],
+        t_process=t_process2,
+        tools=tools2,
         n_process=2,
         t_load=[30,35]*4,
         t_wash=30
@@ -294,10 +298,12 @@ if __name__=='__main__':
     print(len(system.samples),"\t",end='')
     
     # case 2, group 3
+    tools3=[0,1,0,0,1,0,0,1]
+    t_process3=[455 if tool==0 else 182 for tool in tools3]
     system=process_system(
         t_move=[18,32,46],
-        t_process=[455,455,182,182,182,455,455,455],
-        tools=[0,0,1,1,1,0,0,0],
+        t_process=t_process3,
+        tools=tools3,
         n_process=2,
         t_load=[27,32]*4,
         t_wash=25
@@ -370,8 +376,8 @@ if __name__=='__main__':
     # case 3 , result 2 , group 1
     system=process_system(
         t_move=[20,33,46],
-        t_process=[400,378]*4,
-        tools=[0,1]*4,
+        t_process=t_process1,
+        tools=tools1,
         n_process=2,
         t_load=[28,31]*4,
         t_wash=25,
@@ -389,8 +395,8 @@ if __name__=='__main__':
     # case 2, result 2 , group 2
     system=process_system(
         t_move=[23,41,59],
-        t_process=[280,280,500,500,500,500,500,280],
-        tools=[0,0,1,1,1,1,1,0],
+        t_process=t_process2,
+        tools=tools2,
         n_process=2,
         t_load=[30,35]*4,
         t_wash=30,
@@ -408,8 +414,8 @@ if __name__=='__main__':
     # case 2, result 2 , group 3
     system=process_system(
         t_move=[18,32,46],
-        t_process=[455,455,182,182,182,455,455,455],
-        tools=[0,0,1,1,1,0,0,0],
+        t_process=t_process3,
+        tools=tools3,
         n_process=2,
         t_load=[27,32]*4,
         t_wash=25,

@@ -1,7 +1,7 @@
 import random,math
 p_final=0.01
 timestep=1
-t_fix_ava=10/math.log(2)*60
+t_fix_ava=15*60
 time=0
 p=p_final/t_fix_ava*timestep
 
