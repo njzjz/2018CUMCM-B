@@ -34,7 +34,6 @@ class process_system(object):
         self.RGV=machine_RGV(t_move_CNC=self.t_move_CNC,t_load=self.t_load,t_wash=t_wash,system=self)
         self.n_sample=0
         self.samples=[]
-        self.uncompleted_samples=[]
         if self.may_broken:self.brokens=[]
 
     def run(self,t_run):
@@ -97,6 +96,8 @@ class machine_CNC(machine):
                 broken.starttime=self.system.time
                 broken.endtime=self.system.time+self.t_statetotal
                 self.system.brokens.append(broken)
+                if self.system.RGV.determine==self.id:
+                    self.system.RGV.determine=None
     
 class machine_RGV(machine):
     def __init__(self,t_move_CNC,t_load,t_wash,system):
