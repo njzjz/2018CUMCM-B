@@ -26,4 +26,5 @@ while time<10**10:
             t_fix=random.randint(10*60,20*60)
 
     time+=timestep
-    print(time,t_fixtotal/time)
+    if time%1000==0:
+        print(time,t_fixtotal/time)

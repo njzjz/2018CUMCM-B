@@ -1,3 +1,10 @@
+# result:
+         # g1      g2      g3
+# c1      383     360     392
+# c2      253     211     244
+# c3r1    373     357     384
+# c3r2    231     208     243 
+
 from system import process_system
 if __name__=='__main__':
     # group1
@@ -194,7 +201,7 @@ if __name__=='__main__':
     system.run(runtime)
     with open("case3result2group1.txt",'w') as f:
         for sample in sorted(system.samples,key=lambda x:x.id):
-            print(sample.id+1,sample.CNCid[0]+1,sample.starttime[0],sample.endtime[0],file=f)  
+            print(sample.id+1,sample.CNCid[0]+1,sample.starttime[0],sample.endtime[0],sample.CNCid[1]+1,sample.starttime[1],sample.endtime[1],file=f)  
     with open("case3result2group1_broken.txt",'w') as f:
         for broken in sorted(system.brokens,key=lambda x:x.sampleid):
             print(broken.sampleid+1,broken.CNCid+1,broken.starttime,broken.endtime,file=f) 
@@ -213,7 +220,7 @@ if __name__=='__main__':
     system.run(runtime)
     with open("case3result2group2.txt",'w') as f:
         for sample in sorted(system.samples,key=lambda x:x.id):
-            print(sample.id+1,sample.CNCid[0]+1,sample.starttime[0],sample.endtime[0],file=f)  
+            print(sample.id+1,sample.CNCid[0]+1,sample.starttime[0],sample.endtime[0],sample.CNCid[1]+1,sample.starttime[1],sample.endtime[1],file=f)  
     with open("case3result2group2_broken.txt",'w') as f:
         for broken in sorted(system.brokens,key=lambda x:x.sampleid):
             print(broken.sampleid+1,broken.CNCid+1,broken.starttime,broken.endtime,file=f) 
@@ -232,7 +239,7 @@ if __name__=='__main__':
     system.run(runtime)
     with open("case3result2group3.txt",'w') as f:
         for sample in sorted(system.samples,key=lambda x:x.id):
-            print(sample.id+1,sample.CNCid[0]+1,sample.starttime[0],sample.endtime[0],file=f)  
+            print(sample.id+1,sample.CNCid[0]+1,sample.starttime[0],sample.endtime[0],sample.CNCid[1]+1,sample.starttime[1],sample.endtime[1],file=f)  
     with open("case3result2group3_broken.txt",'w') as f:
         for broken in sorted(system.brokens,key=lambda x:x.sampleid):
             print(broken.sampleid+1,broken.CNCid+1,broken.starttime,broken.endtime,file=f) 
