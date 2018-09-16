@@ -6,7 +6,7 @@ if __name__=='__main__':
     t_wash1=25
     
     t_process_single1=560
-    tools1=[0,0,1,1,0,0,1,1]
+    tools1=[0, 1, 0, 1, 0, 1, 0, 1]
     t_process1=[400 if tool==0 else 378 for tool in tools1]
 
     # group2
@@ -15,7 +15,7 @@ if __name__=='__main__':
     t_wash2=30
     
     t_process_single2=580
-    tools2=[1,1,1,0,0,0,1,1]
+    tools2=[1, 0, 1, 0, 1, 0, 1, 0]
     t_process2=[280 if tool==0 else 500 for tool in tools2]
     
     # group3
@@ -24,7 +24,7 @@ if __name__=='__main__':
     t_wash3=25
     
     t_process_single3=545
-    tools3=[0,0,1,1,0,0,0,0]
+    tools3=[0, 1, 0, 0, 1, 0, 0, 1]
     t_process3=[455 if tool==0 else 182 for tool in tools3]
 
     runtime=8*60*60

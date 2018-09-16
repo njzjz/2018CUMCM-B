@@ -124,10 +124,16 @@ class machine_RGV(machine):
             self.todo()
     
     def todetermine(self):
+        if self.unload_sample is not None:
+            processstep=self.unload_sample.processstep
+        else:
+            processstep=0
+            
         if self.determine is None:
         # Determine what to do
             requirements=[i for i in range(len(self.system.CNC))
-                            if (self.system.CNC[i].tool==0 or len(self.system.uncompleted_samples)>0) ]
+                            if self.system.CNC[i].tool==processstep]
+            
 
             if requirements:
                 self.determine=self.system.determine(requirements)
@@ -161,6 +167,7 @@ class machine_RGV(machine):
     def done(self):
         self.state=STATE_REST
         self.determine=None
+        self.todetermine()
         self.todo() # do the next thing
     
     def move(self,move_to):
@@ -170,22 +177,23 @@ class machine_RGV(machine):
     def load(self,id):
         self.state=STATE_LOAD
         self.t_statetotal=self.t_load[id]
+        if self.system.state==STATE_PROCESS:
+            if self.unload_sample is not None:
+                # uncompleted_samples
+                self.load_sample=self.unload_sample
+                self.unload_sample=None
+            if self.load_sample is None:
+                # new sample
+                self.load_sample=Sample(id=self.system.n_sample)
+                self.system.n_sample+=1
+            self.load_sample.starttime.append(self.system.time)
+        
         if self.system.CNC[id].sample is not None:
             # unload
             self.unload_sample=self.system.CNC[id].sample
             self.unload_sample.endtime.append(self.system.time)
             self.system.CNC[id].sample=None
-        if self.system.state==STATE_PROCESS:
-            if self.system.CNC[id].tool==0:
-                # new sample
-                self.load_sample=Sample(id=self.system.n_sample)
-                self.system.n_sample+=1
-            else:
-                # load from uncompleted samples
-                self.load_sample=self.system.uncompleted_samples[0]
-                del self.system.uncompleted_samples[0]
-            self.load_sample.starttime.append(self.system.time)
-        
+
     def load_complete(self,id):
         # load sample
         if self.load_sample is not None:
@@ -194,23 +202,21 @@ class machine_RGV(machine):
             self.system.CNC[id].state=STATE_PROCESS
             self.system.CNC[id].t_statetotal=self.system.CNC[id].t_process
             self.system.CNC[id].sample.CNCid.append(id)
-        # wash sample
         if self.unload_sample is not None:
-            if self.sample is not None:
-                # complete
-                self.sample.processstep+=1
-                if self.sample.processstep>=self.system.n_process:
-                    # completed sample
+            self.unload_sample.processstep+=1
+            if self.unload_sample.processstep>=self.system.n_process:
+                # wash sample
+                if self.sample is not None:
+                    # complete
+                    self.sample.processstep+=1
                     self.system.samples.append(self.sample)
-                else:
-                    # uncompleted sample
-                    self.system.uncompleted_samples.append(self.sample)
-                self.sample=None
-            
-            self.sample=self.unload_sample
-            self.unload_sample=None
-            self.state=STATE_WASH
-            self.t_statetotal=self.t_wash
+                    self.sample=None
+                self.sample=self.unload_sample
+                self.unload_sample=None
+                self.state=STATE_WASH
+                self.t_statetotal=self.t_wash
+            else:
+                self.done()
         else:
             self.done()
 

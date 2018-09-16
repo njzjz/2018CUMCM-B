@@ -1,8 +1,8 @@
 # choose tool for case 2
 # Result:
-# group1 [0, 0, 1, 1, 0, 0, 1, 1] 206
-# group2 [1, 1, 1, 0, 0, 0, 1, 1] 179
-# group3 [0, 0, 1, 1, 0, 0, 0, 0] 219
+# group1 [0, 1, 0, 1, 0, 1, 0, 1] 253
+# group2 [1, 0, 1, 0, 1, 0, 1, 0] 211
+# group3 [0, 1, 0, 0, 1, 0, 0, 1] 244
 
 from system import process_system
 if __name__=='__main__':
