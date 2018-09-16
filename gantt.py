@@ -23,7 +23,6 @@ for table,n_process in zip(["case1group1","case1group2","case1group3","case2grou
                 count=row[3]
     if n_process==2:
         for i,machine in enumerate(range(8)):
-            labels.append(str(i+1))
             data=str(i+1)
             rows=df[np.where(df[:,4]==i+1)]
             for row in rows:        
