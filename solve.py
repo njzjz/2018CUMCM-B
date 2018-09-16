@@ -2,8 +2,8 @@
          # g1      g2      g3
 # c1      383     360     392
 # c2      253     211     244
-# c3r1    373     357     384
-# c3r2    231     208     243 
+# c3r1    380     356     389
+# c3r2    238     200     241 
 
 from system import process_system
 if __name__=='__main__':

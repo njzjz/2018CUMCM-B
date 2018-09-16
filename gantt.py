@@ -5,7 +5,7 @@ height=16
 interval=4
 colors = ("turquoise","crimson","black","red","yellow","green","brown","blue")
 
-for table,n_process in zip(["case1group1","case1group2","case1group3","case2group1","case2group2","case2group3","case3result1group1","case3result1group2","case3result1group2","case3result2group1","case3result2group2","case3result2group3"],([1]*3+[2]*3)*2):
+for table,n_process in zip(["case1group1","case1group2","case1group3","case2group1","case2group2","case2group3","case3result1group1","case3result1group2","case3result1group3","case3result2group1","case3result2group2","case3result2group3"],([1]*3+[2]*3)*2):
     df=np.loadtxt(table+".txt")
     df=df[np.where(df[:,3]<3600*8)]
     
